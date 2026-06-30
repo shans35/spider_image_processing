@@ -26,6 +26,9 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import argparse
+import sys
+import numpy as np
 
 # Objective: extract a frame from one of the avi's and identify the landing platform. 
 
@@ -37,11 +40,15 @@ def to_gray(img):
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return img
 
-#---- LOAD ATTEMPT ----#
+def gray2bgr(img):
+    return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
-# def load_image(image_path: str, frame_index: int = 0):
+#---- IMAGE-LOADING FUNCTIONS ----# - should be generalized for use outside of this context
 
-image_path = "/media/peterparker/9BFA-B40E/jumping_spider/image-processing/input/sh154_14_c1_16Mar2026.avi"
+# image_collection_path = "/media/peterparker/9BFA-B40E/jumping_spider/image-processing/input"
+# files_in_dir = []
+
+image_path = "/media/peterparker/9BFA-B40E/jumping_spider/image-processing/input/tw-00811-01_19_c2_06Apr2026.avi"
 output_dir = "/media/peterparker/9BFA-B40E/jumping_spider/image-processing/output"
 VIDEO_EXTS = {".avi", ".mp4", ".mov", ".mkv", ".wmv", ".m4v"}
 ext = Path(image_path).suffix.lower()
@@ -77,16 +84,74 @@ def save_fig(fig, output_dir: Path, name: str):
     plt.close(fig)
     print(f"  [debug] saved → {path}")
 
+def preprocess(img):
+    """prepare image for edge detection - grayscale, gaussian blur, canny edges"""
+    gray = to_gray(img)
+    blurred = cv2.GaussianBlur(gray, (5,5), 0)
+    grayed_and_blurred = cv2.Canny(blurred, 20, 60, apertureSize=3)
+    return grayed_and_blurred
+
+def detect_platform_x(img):
+    """currently only """
+        
+    lines = cv2.HoughLinesP(
+    img,
+    rho=1,
+    theta=np.pi / 360,      # 0.5° resolution
+    threshold=80,
+    minLineLength=img.shape[1] // 8,
+    #minLineLength=max(10, img.shape[1] // 4), # requires lines to span at least 25% of image width
+    maxLineGap=20
+    )
+        
+    if lines is not None: 
+        for line in lines:
+             #unpack 1s array inside loop
+             x1, y1, x2, y2 = line[0]
+             #draw line on original image
+             cv2.line(img, (x1, y1), (x2, y2), (255, 255, 255), 2)
+             # attempt to omit jumping platform by limiting to right 3/4 of image
+             if x1 > img.shape[1] // 4:
+                #
+                angle_degrees = np.degrees(np.arctan2(-(y2 - y1), x2 - x1))
+                actual_angle = 90 - angle_degrees
+                print(angle_degrees)
+    return img
+
+    
 if __name__ == '__main__':
     INPUT_DIR = Path("/media/peterparker/'9BFA-B40E'/jumping_spider/image-processing/input")
     OUTPUT_DIR = Path("/media/peterparker/'9BFA-B40E'/jumping_spider/image-processing/output")
 
-#---- ACTIONABLE CODE ----#
+#---- CODE TO RUN ----#
 
 img = load_image(image_path)
 #save_fig(img, output_dir, "your_mom.png")
 plt.imshow(img)
 plt.axis('off')
+plt.show()
+
+newimg = preprocess(img)
+#img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+plt.imshow(newimg, cmap='gray')
+plt.axis('off')
+plt.show()
+
+# crop image to remove black space - specific to these videos
+
+xmin, ymin, xmax, ymax = 0, 112, 1024, 368
+# xmin = 341 when jumping platform is omitted 
+roi_img = newimg[ymin:ymax, xmin:xmax]
+
+plt.imshow(roi_img, cmap='gray')
+plt.axis('off')
+plt.show()
+
+lined_img = detect_platform_x(roi_img)
+plt.imshow(lined_img, cmap='gray')
+plt.axis('off')
+plt.text(200, 100, "hough my goodness!", color = 'white')
 plt.show()
 
 
