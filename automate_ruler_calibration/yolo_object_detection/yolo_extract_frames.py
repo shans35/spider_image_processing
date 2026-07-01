@@ -40,5 +40,5 @@ for avi in avi_files:
 
 # THEN:
 # in bash (terminal), run the following code and draw a rectangle around each ruler
-# labelme /Users/sophiehanson/Desktop/automate_cali_digitization/yolo_object_detection/labeling_images/
+# labelme C:\elias_lab\spider_image_processing\image_processing\labeling_images\
 # Use angled ruler to label the ruler tightly (no background space)
