@@ -1,0 +1,100 @@
+{
+  "version": "6.3.1",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "platform_a",
+      "points": [
+        [
+          0.8418461538458359,
+          237.2147692307709
+        ],
+        [
+          91.2,
+          238.8
+        ],
+        [
+          90.8983384615388,
+          255.99470769230618
+        ],
+        [
+          0.5401846153846388,
+          254.40947692307708
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "oriented_rectangle",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "platform_b",
+      "points": [
+        [
+          222.4,
+          233.2
+        ],
+        [
+          231.11764705882354,
+          256.0
+        ],
+        [
+          276.8,
+          256.0
+        ],
+        [
+          984.8682170542634,
+          0.0
+        ],
+        [
+          872.0,
+          0.0
+        ],
+        [
+          222.4,
+          234.0
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "linestrip",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "platform_b",
+      "points": [
+        [
+          221.6,
+          234.0
+        ],
+        [
+          231.13333333333333,
+          256.0
+        ],
+        [
+          276.0,
+          256.0
+        ],
+        [
+          980.8930232558139,
+          0.0
+        ],
+        [
+          871.2,
+          0.0
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "polygon",
+      "flags": {},
+      "mask": null
+    }
+  ],
+  "imagePath": "rb049-01_01_c3_12Nov2025.jpg",
+  "imageData": null,
+  "imageHeight": 256,
+  "imageWidth": 1024
+}
