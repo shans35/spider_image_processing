@@ -31,6 +31,8 @@ import argparse
 import sys
 import numpy as np
 
+HOME_DIR = "/media/peterparker/9BFA-B40E/jumping_spider/spider_image_processing"
+
 # Objective: extract a frame from one of the avi's and identify the landing platform. 
 
 #---- Helpers ----#
@@ -155,5 +157,23 @@ plt.axis('off')
 plt.text(200, 100, "hough my goodness!", color = 'white')
 plt.show()
 
+MODEL_PATH = "{HOME_DIR}/automate_platform_angle_detection/yolo_platform_detection/yolo_runs/platform_detector_obb_v1-3/weights/best.pt"
 
-    
+def use_yolo():
+    img_h, img_w = img.shape[:2]
+    model = YOLO(MODEL_PATH)
+    results = model(img, verbose=False)
+    boxes = results[0].obb
+
+    if boxes is None or len(boxes) == 0:
+        print(" [warn] YOLO found no platform, using full image.")
+        return img, (0, 0, img_w, img_h), np.ones((img_h, img_w), dtype=np.uint8) * 255
+
+    best       = boxes[boxes.conf.argmax()]
+    pts        = best.xyxyxyxy[0].cpu().numpy().reshape(4, 2)
+    conf       = float(best.conf[0])
+    x1 = int(np.min(pts[:, 0]))
+    y1 = int(np.min(pts[:, 1]))
+    x2 = int(np.max(pts[:, 0]))
+    y2 = int(np.max(pts[:, 1]))
+    print(f"  [yolo] conf={conf:.2f} x={x1}–{x2}, y={y1}–{y2}")
