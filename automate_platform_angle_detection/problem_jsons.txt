@@ -1,0 +1,35 @@
+/
+export PATH="/home/peterparker/anaconda3/lib/python3.9/site-packages:$PATH"
+
+# July 1, 2026
+# labelme errors - mislabeled images 
+
+/
+ Skipping unsupported shape_type 'oriented_rectangle' for label 'platform_b' in /media/peterparker/9BFA-B40E/jumping_spider/image_processing_git/spider_image_processing/image_processing/yolo_platform_detection/labeling_images/
+ 
+ 
+ rb004-01_01_c1_12Nov2025.json- 'platform_b'
+ 
+ 
+ Skipping unsupported shape_type 'oriented_rectangle' for label 'platform_a' in /media/peterparker/9BFA-B40E/jumping_spider/image_processing_git/spider_image_processing/image_processing/yolo_platform_detection/labeling_images/
+ 
+ 
+ rb004-01_02_c1_12Nov2025.json - 'platform_a'
+ 
+ 
+ Skipping unsupported shape_type 'oriented_rectangle' for label 'platform_b' in /media/peterparker/9BFA-B40E/jumping_spider/image_processing_git/spider_image_processing/image_processing/yolo_platform_detection/labeling_images/
+ 
+ 
+ rb004-01_02_c1_12Nov2025.json -'platform_b'
+ 
+ 
+ Skipping unsupported shape_type 'oriented_rectangle' for label 'platform_a' in /media/peterparker/9BFA-B40E/jumping_spider/image_processing_git/spider_image_processing/image_processing/yolo_platform_detection/labeling_images/
+ 
+ 
+ rb049-01_01_c3_12Nov2025.json - 'platform_a'
+ 
+ 
+ Skipping unsupported shape_type 'linestrip' for label 'platform_b' in /media/peterparker/9BFA-B40E/jumping_spider/image_processing_git/spider_image_processing/image_processing/yolo_platform_detection/labeling_images/
+ 
+ 
+ rb049-01_01_c3_12Nov2025.json - 'platform_b'
