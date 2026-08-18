@@ -7,13 +7,15 @@
 """
 Q: What data structures do we need to use?
 
+What this script does: 
+
+- take in folder of avis and iterate through it
 - load in avi
 - Use YOLO to place a bounding box around the spider in each frame of the avi. 
 - Crop frame to the ROI
 - Process the image (Grayscale, Gaussian Blur, CannyEdges, Threshold)
-
-What this script does: 
-
+- mask out spider
+- detect centroid
 
 """
 
@@ -41,6 +43,7 @@ class AviInstance:
         self.centroid = centroid
 
 def parse_filename(filename):
+    # must be reduced to filename from path
     # filename contains 3 underscores separating animal id, jump number, cali_number, and the date.
 
     filename_separated = filename.split('_')
@@ -53,8 +56,14 @@ def parse_filename(filename):
     return animal_id, jump_number, cali_number, date
     
 
-def main():
+def main(filename: str):
+    filepath = Path(filename)
+
+    if not filepath.exists():
+        raise FileNotFoundError(f"No such file: {filepath}")
+    
     return
 
 if __name__ == "__main__":
+    args = parse_args()
     main()
