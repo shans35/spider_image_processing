@@ -9,13 +9,22 @@ Q: What data structures do we need to use?
 
 What this script does: 
 
+input: collection of .avi's
+output: collection of .csv's
+
 - take in folder of avis and iterate through it
-- load in avi
-- Use YOLO to place a bounding box around the spider in each frame of the avi. 
-- Crop frame to the ROI
-- Process the image (Grayscale, Gaussian Blur, CannyEdges, Threshold)
-- mask out spider
-- detect centroid
+- for every avi in folder: 
+    - create csv
+    - load in avi
+        for every frame:
+            - create an instance of AviInstance class to track centroid
+            - Use YOLO to place a bounding box around the spider 
+            - Crop frame to the ROI
+            - Process the image (Grayscale, Gaussian Blur, CannyEdges, Threshold)
+            - mask out spider (how)
+            - detect centroid, update class instance 
+            - use to_csv class method to add another row to csv 
+    - return csv
 
 """
 
@@ -41,6 +50,10 @@ class AviInstance:
         self.date = date
 
         self.centroid = centroid
+    
+    def to_csv():
+        # labels stay the same for each csv, only centroid is variable
+
 
 def parse_filename(filename):
     # must be reduced to filename from path
