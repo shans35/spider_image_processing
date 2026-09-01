@@ -20,7 +20,8 @@ output: collection of .csv's
             - create an instance of AviInstance class to track centroid
             - Use YOLO to place a bounding box around the spider 
             - Crop frame to the ROI
-            - Process the image (Grayscale, Gaussian Blur, CannyEdges, Threshold)
+            - Process the image (Grayscale, Gaussian Blur, CannyEdges, Threshold) Q: only doing grayscale before crop 
+            may be better? not cannyedges because then there's no contrast between spider and white platform
             - mask out spider (how)
             - detect centroid, update class instance 
             - use to_csv class method to add another row to csv 
