@@ -1,63 +1,79 @@
 # June 8, 2026
 # Ana Curtis
 
-# ~~~~~~~some helpful tools/keyboard shortcuts~~~~~~~
-# pip show opencv-python            (to check if a package is installed)
-# Ctrl+Shft+P                       (to open python interpreter and select environment)
-# Shft+Enter                        (to run individual lines of code in script)
-# exit()                            (to switch from Python >>> in terminal to (base))
-# Ctrl+D                            to clear terminal / switch
-# Ctrl+/                            to comment out multiple lines at once
+""" For use with Elias Lab phiddipus jumping spider data collection practices.
+Trained YOLO object detection model to identify takeoff and landing platforms. 
+Objective: extract a frame from each one of the avi's to identify the platforms and their angles 
+to the end of producing a .csv file delineating filename along with the data. 
 
-# HI ANA, I figured out the problem with cv2. It was installed in python 3.9.7, not the version we were on.
-# I found this by looking at the results of "pip show opencv-python"
-# I used the python interpreter to swtich our environment so cv2 works now!
-#debugged
-# - sophie
+Inputs: 
+YOLO object detection model - (trained on 25 images)
+Collection of avi's 
 
-# to run:
-# (base) python detect_platform_angle.py
+Outputs: 
+Folder of visualizations of detected objects for debugging purposes
+.csv file: 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+filename | takeoff platform angle | landing platform angle
 
+"""
+
+#______________________________
+
+#=        = IMPORTS =         =
+#______________________________
 
 import cv2
+from dataclasses import dataclass
 from pathlib import Path
 from ultralytics import YOLO
+import statistics
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import numpy as np
 import argparse
 import sys
-import numpy as np
 
 HOME_DIR = "/media/peterparker/9BFA-B40E/jumping_spider/spider_image_processing"
 
-# Objective: extract a frame from one of the avi's and identify the landing platform. 
+MODEL_PATH = r"\elias-lab\spider_image_processing\automate_platform_angle_detection\yolo_platform_detection\yolo_runs\platform_detector_obb_v1-3\weights\best.pt"
+
+
+@dataclass(slots=True)
+class VideoResult:
+    filename: str 
+    takeoff_angle: float | None = None
+    landing_angle: float | None = None
+    error: str | None = None
 
 #---- Helpers ----#
 
-# Platform image grayitization
 def to_gray(img):
+    """Return a grayscale image."""
     if img.ndim == 3:
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return img
 
 def gray2bgr(img):
+    """Return an image with BGR channels."""
     return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
-#---- IMAGE-LOADING FUNCTIONS ----# - should be generalized for use outside of this context
+#---- IMAGE-LOADING FUNCTIONS ----# 
+"""Note: Should be generalized for use outside of this context (as with everything else)."""
 
-# image_collection_path = "/media/peterparker/9BFA-B40E/jumping_spider/image-processing/input"
-# files_in_dir = []
+image_collection_path = "/media/peterparker/9BFA-B40E/jumping_spider/image-processing/input"
 
-image_path = "/media/peterparker/9BFA-B40E/jumping_spider/image-processing/input/tw-00811-01_19_c2_06Apr2026.avi"
-output_dir = "/media/peterparker/9BFA-B40E/jumping_spider/image-processing/output"
-VIDEO_EXTS = {".avi", ".mp4", ".mov", ".mkv", ".wmv", ".m4v"}
-ext = Path(image_path).suffix.lower()
+avi_image_path = r"\elias-lab\sh154_14_c1_16Mar2026.avi"
+output_dir = r"\elias-lab\spider_image_processing\automate_platform_angle_detection\output"
+
 frame_index = 0
 
 def load_image(image_path: str, frame_index: int = 0):
+    """Take a .avi file and extract a random frame from the middle of the video."""
+    VIDEO_EXTS = {".avi", ".mp4", ".mov", ".mkv", ".wmv", ".m4v"}
+    ext = Path(avi_image_path).suffix.lower()
+
     if ext in VIDEO_EXTS:
         cap = cv2.VideoCapture(image_path)
         
@@ -82,98 +98,176 @@ def load_image(image_path: str, frame_index: int = 0):
     return img
         
 def save_fig(fig, output_dir: Path, name: str):
+    """Save debug image."""
     path = output_dir / name
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"  [debug] saved → {path}")
 
 def preprocess(img):
-    """prepare image for edge detection - grayscale, gaussian blur, canny edges"""
+    """Prepare image for edge detection - grayscale, gaussian blur, canny edges."""
     gray = to_gray(img)
     blurred = cv2.GaussianBlur(gray, (5,5), 0)
     grayed_and_blurred = cv2.Canny(blurred, 20, 60, apertureSize=3)
     return grayed_and_blurred
 
-def detect_platform_x(img):
-    """ """
-        
+model = YOLO(MODEL_PATH)
+""" Important. """
+
+def use_yolo(image):
+    """Apply YOLO model to screencap to detect platforms. Return a list of tuples: [(cropped bounding box img, label)] ."""
+
+    image_results = []
+    img_h, img_w = image.shape[:2]
+    results = model(image, verbose=False)
+    boxes = results[0].obb
+
+    if boxes is None or len(boxes) == 0:
+        print(" [warn] YOLO found no platform, using full image.")
+        image_results.append([image, "no_id"])
+    
+    for box in boxes:
+        pts        = box.xyxyxyxy[0].cpu().numpy().reshape(4, 2)
+
+        # typecast pts to int
+        x1, y1 = int(pts[:, 0].min()), int(pts[:, 1].min())
+        x2, y2 = int(pts[:,0].max()), int(pts[:, 1].max())
+
+        print(f"  [yolo] {box[0]} x={x1:.0f}–{x2:.0f}, y={y1:.0f}–{y2:.0f}")
+        print(f" x1: {x1} x2: {x2} y1: {y1} y2: {y2}")
+        cropped     = image[y1:y2, x1:x2]
+
+        # adds labels to corresponding images in dict
+        cls_id = int(box.cls)
+        label = model.names[cls_id]
+
+        # changes label names
+        if label == 'platform_a':
+            label = 'takeoff_platform'
+        else:
+            label = 'landing_platform'
+
+        image_results.append([cropped, label])
+
+    return image_results
+
+def detect_lines(img, label):
+    """ Returns a list including the img with hough lines applied, its label, and its dominant platform angle. """
+
+    label_data = []
     lines = cv2.HoughLinesP(
     img,
     rho=1,
     theta=np.pi / 360,      # 0.5° resolution
     threshold=80,
-    minLineLength=img.shape[1] // 8,
-    #minLineLength=max(10, img.shape[1] // 4), # requires lines to span at least 25% of image width
+    minLineLength=img.shape[1] // 10/8, # requires lines to span at least 80% of image width
     maxLineGap=20
     )
         
     if lines is not None: 
+        lines_angle_collection = []
         for line in lines:
              #unpack 1s array inside loop
              x1, y1, x2, y2 = line[0]
              #draw line on original image
              cv2.line(img, (x1, y1), (x2, y2), (255, 255, 255), 2)
-             # attempt to omit jumping platform by limiting to right 3/4 of image
-             if x1 > img.shape[1] // 4:
-                #
-                angle_degrees = np.degrees(np.arctan2(-(y2 - y1), x2 - x1))
-                actual_angle = 90 - angle_degrees
-                print(angle_degrees)
-    return img
+             angle_degrees = np.degrees(np.arctan2(-(y2 - y1), x2 - x1))
+             if angle_degrees < 0:
+                angle_degrees = angle_degrees + 180
+        print(angle_degrees)
+        lines_angle_collection.append(float(angle_degrees))
+        dominant_angle = statistics.mean(lines_angle_collection)
+        label_data.append(img)
+        label_data.append(label)
+        label_data.append(dominant_angle)   
+    else:
+        label_data.append(img)
+        label_data.append(label)
+        label_data.append(0)   
 
+    return label_data 
+
+def visualize_images(images):
+    """Take in a list ([img, label, angle]) produced by detect_lines() to produce a visualization. Use detect_lines()."""
+
+    results = []
+    for i in range(len(images)):
+        img = images[i][0]
+        img_label = images[i][1]
+        angle = images[i][2]
+
+        # gives the function the images
+        edges = to_gray(preprocess(images[i][0]))
+        hough = detect_lines(edges.copy(), img_label)[0]  # .copy() so drawing doesn't corrupt the edge map you're also displaying
+        results.append([img, edges, hough])
+
+    n_rows = len(results)
+    fig, axes = plt.subplots(n_rows, 3, figsize=(12, 4 * n_rows))
+    if n_rows == 1:
+        axes = np.array([axes])  # keep indexing 2D-consistent
+
+    row_title_y = [2] + [1.45] * (n_rows - 1)
+
+    titles = ["Original", "Edges", "Hough lines"]
+    for row, label in enumerate(results):
+
+        # row-level heading — larger + bold, sits above the three subplot titles for this row
+        row_label = images[row][1].replace('_', ' ').title()
+        axes[row, 1].text(
+            0.2, row_title_y[row],
+            row_label,
+            transform=axes[row, 1].transAxes,
+            ha='center', va='bottom',
+            fontsize=15, fontweight='bold', color='black'
+        )
+        
+        for col, image in enumerate(label):
+            ax = axes[row, col]
+            ax.imshow(image, cmap='gray' if col > 0 else None)
+            ax.set_title(titles[col])
+            ax.text(
+            0.6, 1.16, f"{float(angle)}",       # x centered, just above the axes (title sits a bit higher)
+            transform=ax.transAxes,
+            ha='center', va='bottom',
+            fontsize=9, color='gray'
+            )
+            ax.axis('off')
+
+    plt.subplots_adjust(hspace=0.9, top=0.88)
+    save_fig(fig, OUTPUT_PATH, 'plaecholder for avi title + _visual.jpg')  
+
+# ---------- ---------- #
     
 if __name__ == '__main__':
     INPUT_DIR = Path("/media/peterparker/'9BFA-B40E'/jumping_spider/image-processing/input")
-    OUTPUT_DIR = Path("/media/peterparker/'9BFA-B40E'/jumping_spider/image-processing/output")
+    OUTPUT_PATH = Path(r"C:\elias-lab\spider_image_processing\automate_platform_angle_detection\output")
 
-#---- CODE TO RUN ----#
+#---- Main Pipeline ----#
 
-img = load_image(image_path)
-#save_fig(img, output_dir, "your_mom.png")
-plt.imshow(img)
-plt.axis('off')
-plt.show()
+#def main detect_angles(avi_image_path)
+    joe = VideoResult(avi_image_path)
+    joe.filename = avi_image_path
+    
+    img = load_image(avi_image_path)
+    # label_list is 2 indeces of img, label """WHAT HAPPENS WHEN THERES NO PLATFORM?"""
+    label_list = use_yolo(img)
 
-newimg = preprocess(img)
-#img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # label is a tuple including platform img and its label
+    img_label_angle = []
+    for label in label_list:
+        # img_label_angle includes img, label, and angle in it
+        img, label = label[0], label[1]
+        img = preprocess(img)
+        img_label_angle_entry = detect_lines(img, label)
+        img_label_angle.append(img_label_angle_entry)
+        if label == 'takeoff_platform':
+            joe.takeoff_angle = img_label_angle_entry[2]
+        else:
+            joe.landing_angle = img_label_angle_entry[2]
+    visualize_images(img_label_angle)    
 
-plt.imshow(newimg, cmap='gray')
-plt.axis('off')
-plt.show()
 
-# crop image to remove black space - specific to these videos
 
-xmin, ymin, xmax, ymax = 0, 112, 1024, 368
-# xmin = 341 when jumping platform is omitted 
-roi_img = newimg[ymin:ymax, xmin:xmax]
 
-plt.imshow(roi_img, cmap='gray')
-plt.axis('off')
-plt.show()
 
-lined_img = detect_platform_x(roi_img)
-plt.imshow(lined_img, cmap='gray')
-plt.axis('off')
-plt.text(200, 100, "hough my goodness!", color = 'white')
-plt.show()
 
-MODEL_PATH = "{HOME_DIR}/automate_platform_angle_detection/yolo_platform_detection/yolo_runs/platform_detector_obb_v1-3/weights/best.pt"
-
-def use_yolo():
-    img_h, img_w = img.shape[:2]
-    model = YOLO(MODEL_PATH)
-    results = model(img, verbose=False)
-    boxes = results[0].obb
-
-    if boxes is None or len(boxes) == 0:
-        print(" [warn] YOLO found no platform, using full image.")
-        return img, (0, 0, img_w, img_h), np.ones((img_h, img_w), dtype=np.uint8) * 255
-
-    best       = boxes[boxes.conf.argmax()]
-    pts        = best.xyxyxyxy[0].cpu().numpy().reshape(4, 2)
-    conf       = float(best.conf[0])
-    x1 = int(np.min(pts[:, 0]))
-    y1 = int(np.min(pts[:, 1]))
-    x2 = int(np.max(pts[:, 0]))
-    y2 = int(np.max(pts[:, 1]))
-    print(f"  [yolo] conf={conf:.2f} x={x1}–{x2}, y={y1}–{y2}")
