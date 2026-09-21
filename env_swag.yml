@@ -1,0 +1,9 @@
+name: env_swag
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip=25.2
+  - pip:
+      - ultralytics==8.4.52
+      - scikit-learn==1.8.0
