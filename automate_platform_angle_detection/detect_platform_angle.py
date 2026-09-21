@@ -77,7 +77,7 @@ def load_image(image_path: str, frame_index: int = 0):
     if ext in VIDEO_EXTS:
         cap = cv2.VideoCapture(image_path)
         
-        # if not cap.isOpened():
+        #if not cap.isOpened():
         #     raise FileNotFoundError(f"Cannot open video: {image_path}")
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
@@ -245,7 +245,7 @@ if __name__ == '__main__':
 #---- Main Pipeline ----#
 
 #def main detect_angles(avi_image_path)
-    joe = VideoResult(avi_image_path)
+    joe = VideoResult(avi_image_path) 
     joe.filename = avi_image_path
     
     img = load_image(avi_image_path)
