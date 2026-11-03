@@ -41,7 +41,7 @@ import numpy as np
 
 
 
-class AviInstance:
+class FrameIndex:
     def __init__ (self, filename, centroid):
         animal_id, jump_number, cali_number, date = parse_filename(filename)
 
@@ -53,7 +53,14 @@ class AviInstance:
         self.centroid = centroid
     
     def to_csv():
+        csv = 0
         # labels stay the same for each csv, only centroid is variable
+        return csv
+
+def parse_args():
+    # identifies arguments passed into main (should be a folder name string)
+
+    return args
 
 
 def parse_filename(filename):
@@ -71,13 +78,19 @@ def parse_filename(filename):
     
 
 def main(filename: str):
-    filepath = Path(filename)
+    AVI_DIR = Path(filename)
 
-    if not filepath.exists():
-        raise FileNotFoundError(f"No such file: {filepath}")
+    if not AVI_DIR.exists():
+        raise FileNotFoundError(f"No such file: {AVI_DIR}")
+    
+
+    # place this somewhere not in main plz
+    for avi in AVI_DIR.iterdir():
+        george = FrameIndex(avi.name, 0)
+        george.animal_id, george.jump_number, george.cali_number, george.date = parse_filename(avi)
     
     return
 
 if __name__ == "__main__":
     args = parse_args()
-    main()
+    main(args)

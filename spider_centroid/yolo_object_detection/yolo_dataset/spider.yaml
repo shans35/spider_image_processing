@@ -1,0 +1,6 @@
+path: /media/peterparker/SOPHIEF/jumping_spider/spider_image_processing/spider_centroid/yolo_object_detection/yolo_dataset
+train: images/train
+val: images/val
+
+nc: 1
+names: ["spider"]

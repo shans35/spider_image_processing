@@ -177,6 +177,7 @@ def detect_lines(img, label):
         print(angle_degrees)
         lines_angle_collection.append(float(angle_degrees))
         dominant_angle = statistics.mean(lines_angle_collection)
+        
         label_data.append(img)
         label_data.append(label)
         label_data.append(dominant_angle)   
