@@ -1,2 +1,5 @@
 *.avi
+*.png
+*.jpg
 automate_platform_angle_detection/input/
+spider_centroid/input
