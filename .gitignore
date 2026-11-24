@@ -1,8 +1,12 @@
 *.avi
 *.png
 *.jpg
+*.pt
 
-spider_centroid/input
-spider_image_processing/spider_centroid/test_material
-spider_centroid/output
-spider_centroid/debug_detection_for_YOLO
+spider_centroid/input/
+spider_image_processing/spider_centroid/test_material/
+spider_centroid/output/
+spider_centroid/debug_detection_for_YOLO/
+spider_centroid/02_spider_SAM2/checkpoints/sam2.1_hiera_large.pt(1)/
+spider_centroid/01_yolo_object_detection/yolo_dataset/
+spider_centroid/01_yolo_object_detection/yolo_runs/
