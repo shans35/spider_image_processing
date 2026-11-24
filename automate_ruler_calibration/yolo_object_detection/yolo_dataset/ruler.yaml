@@ -1,0 +1,6 @@
+path: /Users/sophiehanson/Desktop/automate_cali_digitization/yolo_object_detection/yolo_dataset
+train: images/train
+val: images/val
+
+nc: 1
+names: ["ruler"]
