@@ -1,5 +1,8 @@
 *.avi
 *.png
 *.jpg
-automate_platform_angle_detection/input/
+
 spider_centroid/input
+spider_image_processing/spider_centroid/test_material
+spider_centroid/output
+spider_centroid/debug_detection_for_YOLO
